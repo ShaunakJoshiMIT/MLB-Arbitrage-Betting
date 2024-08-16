@@ -2,19 +2,28 @@ from typing import List
 from scraper import MLBscraper
 
 def american_to_decimal(american_odds):
+    """
+    Converts American odds to decimal odds
+    """
     if american_odds > 0:
         return (american_odds/100) + 1
     else:
         return (100/abs(american_odds)) + 1
 def calculate_arbitrage(oddsA, oddsB):
+    """
+    Arbitrage Formula
+    """
     return ((1/oddsA) * 100) + ((1/oddsB) * 100)
 
 class Arbitrage():
+
     def totals(self, games: List[dict], investment = 100):
+        """
+        Finds arbitrage opportunities for a betting type of totals given a list of game dictionaries
+        """
         bookies = ["Fanduel", "Caesars", "bet365", "DraftKings", "BetMGM", "BetRivers"]
         opportunities = []
         for game in games:
-            print(game["home"], game["away"])
             for i, bookie in enumerate(bookies):
                 line = game[bookie]["line"]
                 over, under = american_to_decimal(game[bookie]["over"]), american_to_decimal(game[bookie]["under"])
@@ -31,6 +40,7 @@ class Arbitrage():
                         bet_dict = {
                             "game": f"{game["away"]} at {game["home"]}",
                             "line": line,
+                            "bet type": "Totals",
                             "betA": {"bookie": bookie, "side": "over", "odds": over, "amount": betA},
                             "betB": {"bookie": bookie2, "side": "under", "odds": under2, "amount": betB},
                             "percent profit": 100 - arbi_percentage1
@@ -42,6 +52,7 @@ class Arbitrage():
                         bet_dict = {
                             "game": f"{game["away"]} at {game["home"]}",
                             "line": line,
+                            "bet type": "Totals",
                             "betA": {"bookie": bookie2, "side": "over", "odds": over2, "amount": betA},
                             "betB": {"bookie": bookie, "side": "under", "odds": under, "amount": betB},
                             "percent profit": 100 - arbi_percentage2
@@ -50,6 +61,10 @@ class Arbitrage():
         return opportunities
 
     def moneyline(self, games: List[dict], investment = 100):
+        """
+        Finds arbitrage opportunities for a betting type of moneyline given a list of game dictionaries
+        """
+
         bookies = ["Fanduel", "Caesars", "bet365", "DraftKings", "BetMGM", "BetRivers"]
         opportunities = []
         for game in games:
@@ -63,6 +78,7 @@ class Arbitrage():
                         betA = (investment * ((1/home_odds) * 100)) / arbi_percentage1
                         betB = (investment * ((1/away_odds2) * 100)) / arbi_percentage1
                         bet_dict = {
+                            "bet type": "moneyline",
                             "betA": {"bookie": bookie, "home team": game["home"], "odds": game[bookie]["home"], "amount": betA},
                             "betB": {"bookie": bookies[j], "away team": game["away"], "odds": game[bookies[j]]["away"], "amount": betB},
                             "percent profit": 100 - arbi_percentage1
@@ -72,6 +88,7 @@ class Arbitrage():
                         betA = (investment * ((1/home_odds2) * 100)) / arbi_percentage2
                         betB = (investment * ((1/away_odds) * 100)) / arbi_percentage2
                         bet_dict = {
+                            "bet type": "moneyline",
                             "betA": {"bookie": bookies[j], "home team": game["home"], "odds": game[bookies[j]]["home"], "amount": betA},
                             "betB": {"bookie": bookie, "away team": game["away"], "odds": game[bookie]["away"], "amount": betB},
                             "pecent profit": 100 - arbi_percentage2
@@ -79,7 +96,12 @@ class Arbitrage():
                         opportunities.append(bet_dict)
         return opportunities
 
+
     def spread(self, games: List[dict], investment = 100):
+        """
+        Finds arbitrage opportunities for a betting type of spread given a list of game dictionaries
+        """
+
         bookies = ["Fanduel", "Caesars", "bet365", "DraftKings", "BetMGM", "BetRivers"]
         opportunities = []
 
@@ -98,6 +120,7 @@ class Arbitrage():
                         betA = (investment * ((1/home_odds) * 100)) / arbi_percentage1
                         betB = (investment * ((1/away_odds2) * 100)) / arbi_percentage1
                         bet_dict = {
+                            "bet type": "spread",
                             "betA": {"bookie": bookie, "home team": game["home"], "odds": game[bookie]["home"]["odds"], "amount": betA},
                             "betB": {"bookie": bookie2, "away team": game["away"], "odds": game[bookie2]["away"]["odds"], "amount": betB},
                             "percent profit": 100 - arbi_percentage1
@@ -107,6 +130,7 @@ class Arbitrage():
                         betA = (investment * ((1/home_odds2) * 100)) / arbi_percentage2
                         betB = (investment * ((1/away_odds) * 100)) / arbi_percentage2
                         bet_dict = {
+                            "bet type": "spread",
                             "betA": {"bookie": bookie2, "home team": game["home"], "odds": game[bookie2]["home"]["odds"], "amount": betA},
                             "betB": {"bookie": bookie , "away team": game["away"], "odds": game[bookie]["away"]["odds"], "amount": betB},
                             "percent profit": 100 - arbi_percentage2
@@ -114,47 +138,12 @@ class Arbitrage():
                         opportunities.append(bet_dict)
         return opportunities
 
-scraper = MLBscraper()
-moneyline, totals, spread = scraper.MLBmoneyline(), scraper.MLBtotals(), scraper.MLBspread()
-arb = Arbitrage()
-print(arb.spread(spread), arb.totals(totals), arb.moneyline(moneyline))
 
 
 
-"""
-{'home': 'CHC',
-'away': 'STL',
-'date': 'Friday, August 2, 2024 ',
-'bet type': 'Point Spread',
-'Fanduel': {'home': {'spread': '+1.5', 'odds': '-176'}, 'away': {'spread': '-1.5', 'odds': '+146'}},
-'Caesars': {'home': {'spread': '+1.5', 'odds': '-161'}, 'away': {'spread': '-1.5', 'odds': '+135'}},
-'bet365': {'home': {'spread': '+1.5', 'odds': '-165'}, 'away': {'spread': '-1.5', 'odds': '+140'}},
-'DraftKings': {'home': {'spread': '+1.5', 'odds': '-175'}, 'away': {'spread': '-1.5', 'odds': '+145'}},
-'BetMGM': {'home': {'spread': '+1.5', 'odds': '-175'}, 'away': {'spread': '-1.5', 'odds': '+145'}},
-'BetRivers': {'home': {'spread': '+1', 'odds': '-143'}, 'away': {'spread': '-1', 'odds': '+115'}}}
-
-{'home': 'CHC',
-'away': 'STL',
-'date': 'Friday, August 2, 2024 ',
-'bet type': 'Money Line',
-'Fanduel': {'home': '-104', 'away': '-112'},
-'Caesars': {'home': '-5000', 'away': '+1800'},
-'bet365': {'home': '+100', 'away': '-120'},
-'DraftKings': {'home': '-102', 'away': '-118'},
-'BetMGM': {'home': '-105', 'away': '-120'},
-'BetRivers': {'home': '-177', 'away': '+116'}}
-
-
-{'home': 'CHC',
-'away': 'STL',
-'date': 'Friday, August 2, 2024 ',
-'bet type': 'Totals',
-'Fanduel': {'line': 8.0, 'over': -122.0, 'under': 100.0},
-'Caesars': {'line': 6.5, 'over': -149.0, 'under': 120.0},
-'bet365': {'line': 8.5, 'over': -105.0, 'under': -115.0},
-'DraftKings': {'line': 8.5, 'over': -105.0, 'under': -115.0},
-'BetMGM': {'line': 4.5, 'over': -110.0, 'under': -120.0},
-'BetRivers': {'line': 6.5, 'over': 220.0, 'under': -335.0}}
-
-"""
-
+if __name__ == "__main__":
+    scraper = MLBscraper()
+    totals, moneyline, spread = scraper.MLBtotals(), scraper.MLBmoneyline(), scraper.MLBspread() #Game/betting info for each betting type
+    arbitrageFinder = Arbitrage()
+    totals_opps, moneyline_opps, spread_opps =arbitrageFinder.totals(), arbitrageFinder.moneyline(), arbitrageFinder.spread()
+    print(totals_opps, moneyline_opps, spread_opps)

@@ -4,6 +4,11 @@ from bs4 import BeautifulSoup
 
 
 class MLBscraper():
+    """
+    Methods include scraping odds, teams, and games and parsing them into a workable format (dictionary) for
+    totals, moneyline and spread betting
+    """
+
     def MLBspread(self):
         url = "https://www.sportsbookreview.com/betting-odds/mlb-baseball/pointspread/full-game/"
         page = requests.get(url)
